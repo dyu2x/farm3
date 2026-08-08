@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Fish, Droplets, ShieldCheck, Activity, MapPin, Phone } from 'lucide-react';
 import { Fingerling, BlogArticle, SiteSettings } from '../types';
-import { FingerlingCard } from '../components/FingerlingCard';
 import { OrderCalculator } from '../components/OrderCalculator';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { AboutSlideshow } from '../components/AboutSlideshow';
@@ -13,9 +12,7 @@ interface HomeProps {
   settings: SiteSettings;
 }
 
-export const Home: React.FC<HomeProps> = ({ fingerlings, articles, settings }) => {
-  const featuredArticles = articles.slice(0, 3);
-
+export const Home: React.FC<HomeProps> = ({ fingerlings, settings }) => {
   const stats = [
     { icon: Fish, label: 'Fingerling Stages', value: '4+' },
     { icon: Droplets, label: 'Water Quality', value: '98%' },
@@ -104,58 +101,6 @@ export const Home: React.FC<HomeProps> = ({ fingerlings, articles, settings }) =
         </div>
       </section>
 
-      {/* GROWTH-STAGE CATALOG GRID */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="text-xs uppercase tracking-widest text-primary font-bold mb-2">
-              Growth-Stage Catalog
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold mb-4 text-foreground">
-              Premium Fingerling Stages
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base">
-              Each Clarias batrachus growth stage is meticulously cultivated with scientific precision — from starter fingerlings to jumbo stockers.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {fingerlings.map((f, i) => (
-              <FingerlingCard key={f.id} fingerling={f} index={i} />
-            ))}
-          </div>
-
-          <div className="text-center mt-10">
-            <Link
-              to="/catalog"
-              className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
-            >
-              <span>View Full Catalog</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* INSTANT CALCULATOR SECTION */}
-      <section className="py-20 bg-card/30 border-y border-border/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="text-xs uppercase tracking-widest text-primary font-bold mb-2">
-              Instant Quote
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold mb-4 text-foreground">
-              Calculate Your Order
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base">
-              Select a fingerling stage and quantity to instantly see volume-based tier pricing and your total cost.
-            </p>
-          </div>
-
-          <OrderCalculator fingerlings={fingerlings} />
-        </div>
-      </section>
-
       {/* ABOUT MESINA FARMS */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -197,53 +142,22 @@ export const Home: React.FC<HomeProps> = ({ fingerlings, articles, settings }) =
         </div>
       </section>
 
-      {/* FEATURED ARTICLES */}
+      {/* INSTANT CALCULATOR SECTION */}
       <section className="py-20 bg-card/30 border-y border-border/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <div className="text-xs uppercase tracking-widest text-primary font-bold mb-2">
-              Bio-Care Knowledge Base
+              Instant Quote
             </div>
             <h2 className="text-3xl sm:text-5xl font-extrabold mb-4 text-foreground">
-              Featured Fish Care Articles
+              Calculate Your Order
             </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base">
+              Select a fingerling stage and quantity to instantly see volume-based tier pricing and your total cost.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {featuredArticles.map(article => (
-              <Link
-                key={article.id}
-                to="/fish-care"
-                className="block glass-card rounded-3xl overflow-hidden group hover:ring-2 hover:ring-primary/40 transition-all duration-300"
-              >
-                <div className="relative aspect-[3/2] overflow-hidden">
-                  <ImageWithFallback
-                    src={article.image_url}
-                    alt={article.title}
-                    className="w-full h-full group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-primary/80 text-primary-foreground text-xs font-semibold">
-                    {article.category}
-                  </div>
-                </div>
-                <div className="p-5 space-y-2">
-                  <h3 className="font-bold text-base sm:text-lg line-clamp-2 group-hover:text-primary transition-colors">
-                    {article.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                    {article.excerpt}
-                  </p>
-                  <div className="pt-2 text-xs text-muted-foreground font-medium flex items-center justify-between">
-                    <span>{article.read_time}</span>
-                    <span className="text-primary font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                      Read Guide <ArrowRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <OrderCalculator fingerlings={fingerlings} />
         </div>
       </section>
 

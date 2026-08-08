@@ -121,10 +121,6 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
         {/* Bottom copyright */}
         <div className="pt-8 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} {settings.farm_name}. All rights reserved.</p>
-          <p className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            <span>Powered by Bio-Precision Aquaculture</span>
-          </p>
         </div>
       </div>
     </footer>
