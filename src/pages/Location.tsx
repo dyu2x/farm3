@@ -109,8 +109,9 @@ export const Location: React.FC<LocationProps> = ({ settings }) => {
             </div>
             <h3 className="font-bold text-base text-foreground">Visiting Hours</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Mon - Sat: 7:00 AM - 5:00 PM<br />
-              Sunday: By Appointment
+              Mon - Fri: 7:00 AM - 5:00 PM<br />
+              Saturday: By Appointment<br />
+              Sunday: Closed
             </p>
           </div>
         </div>

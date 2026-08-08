@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Sun, Moon, Menu, X, Shield, ArrowRight } from 'lucide-react';
+import { Search, Sun, Moon, Menu, X, ArrowRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { ImageWithFallback } from './ImageWithFallback';
 import { SiteSettings } from '../types';
