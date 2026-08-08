@@ -9,9 +9,10 @@ import {
   Plus,
   Trash2,
   Edit2,
+  Upload,
+  Link as LinkIcon,
   Check,
-  AlertTriangle,
-  RefreshCw
+  Star
 } from 'lucide-react';
 import { Fingerling, SiteSettings, OrderInquiry, Sale } from '../types';
 
@@ -37,22 +38,93 @@ export const Admin: React.FC<AdminProps> = ({
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [editingFingerling, setEditingFingerling] = useState<Fingerling | null>(null);
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(settings);
+  const [newSlideUrl, setNewSlideUrl] = useState<string>('');
+  const [uploadSuccessMsg, setUploadSuccessMsg] = useState<string>('');
 
   const totalStock = fingerlings.reduce((acc, f) => acc + f.stock_count, 0);
   const pendingOrders = inquiries.filter(i => i.status === 'pending').length;
   const totalRevenue = sales.reduce((acc, s) => acc + s.total_amount, 0);
+
+  // Helper to process uploaded file into Base64
+  const handleFileUpload = (file: File, callback: (url: string) => void) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        callback(e.target.result as string);
+        showTempMessage('Photo uploaded successfully!');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const showTempMessage = (msg: string) => {
+    setUploadSuccessMsg(msg);
+    setTimeout(() => setUploadSuccessMsg(''), 3000);
+  };
 
   const handleSaveFingerling = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingFingerling) {
       onUpdateFingerling(editingFingerling);
       setEditingFingerling(null);
+      showTempMessage('Fingerling details updated!');
     }
   };
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdateSettings(settingsForm);
+    showTempMessage('Settings & image assets updated!');
+  };
+
+  // Add new photo to About Slideshow
+  const handleAddSlidePhoto = (photoUrl: string) => {
+    if (!photoUrl.trim()) return;
+    const currentSlides = settingsForm.about_images || [settingsForm.about_image_url];
+    const updatedSlides = [...currentSlides, photoUrl.trim()];
+    const updated = {
+      ...settingsForm,
+      about_images: updatedSlides,
+      about_image_url: updatedSlides[0] || settingsForm.about_image_url
+    };
+    setSettingsForm(updated);
+    onUpdateSettings(updated);
+    setNewSlideUrl('');
+    showTempMessage('New slideshow photo added!');
+  };
+
+  // Remove photo from About Slideshow
+  const handleRemoveSlidePhoto = (index: number) => {
+    const currentSlides = settingsForm.about_images || [settingsForm.about_image_url];
+    if (currentSlides.length <= 1) {
+      alert('You must keep at least one photo in the About slideshow.');
+      return;
+    }
+    const updatedSlides = currentSlides.filter((_, idx) => idx !== index);
+    const updated = {
+      ...settingsForm,
+      about_images: updatedSlides,
+      about_image_url: updatedSlides[0]
+    };
+    setSettingsForm(updated);
+    onUpdateSettings(updated);
+    showTempMessage('Slideshow photo removed.');
+  };
+
+  // Set as primary cover photo
+  const handleSetPrimaryPhoto = (index: number) => {
+    const currentSlides = settingsForm.about_images || [settingsForm.about_image_url];
+    const selected = currentSlides[index];
+    const updatedSlides = [selected, ...currentSlides.filter((_, idx) => idx !== index)];
+    const updated = {
+      ...settingsForm,
+      about_images: updatedSlides,
+      about_image_url: selected
+    };
+    setSettingsForm(updated);
+    onUpdateSettings(updated);
+    showTempMessage('Primary photo updated!');
   };
 
   const tabs = [
@@ -72,9 +144,16 @@ export const Admin: React.FC<AdminProps> = ({
           <div>
             <h1 className="text-3xl font-extrabold text-foreground">Admin Portal</h1>
             <p className="text-xs text-muted-foreground mt-1">
-              Manage hatchery inventory, pricing tiers, order inquiries, and site configuration.
+              Manage hatchery inventory, pricing tiers, image assets, order inquiries, and site configuration.
             </p>
           </div>
+
+          {uploadSuccessMsg && (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 text-xs font-semibold animate-fade-in">
+              <Check className="w-4 h-4" />
+              <span>{uploadSuccessMsg}</span>
+            </div>
+          )}
         </div>
 
         {/* Navigation Tabs */}
@@ -159,9 +238,14 @@ export const Admin: React.FC<AdminProps> = ({
               {fingerlings.map(f => (
                 <div key={f.id} className="glass-card rounded-3xl p-6 space-y-4">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-foreground">{f.name}</h3>
-                      <p className="text-xs text-primary font-semibold">{f.size_label}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl overflow-hidden border border-border/50 shrink-0">
+                        <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-foreground">{f.name}</h3>
+                        <p className="text-xs text-primary font-semibold">{f.size_label}</p>
+                      </div>
                     </div>
                     <button
                       onClick={() => setEditingFingerling(f)}
@@ -191,7 +275,7 @@ export const Admin: React.FC<AdminProps> = ({
               ))}
             </div>
 
-            {/* Edit Modal */}
+            {/* Edit Fingerling Modal */}
             {editingFingerling && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setEditingFingerling(null)} />
@@ -225,14 +309,41 @@ export const Admin: React.FC<AdminProps> = ({
                         className="w-full p-2.5 rounded-xl bg-muted border border-border"
                       />
                     </div>
+
+                    {/* Fingerling Photo Upload */}
                     <div>
-                      <label className="block text-muted-foreground font-medium mb-1">Image URL</label>
-                      <input
-                        type="text"
-                        value={editingFingerling.image_url}
-                        onChange={e => setEditingFingerling({ ...editingFingerling, image_url: e.target.value })}
-                        className="w-full p-2.5 rounded-xl bg-muted border border-border"
-                      />
+                      <label className="block text-muted-foreground font-medium mb-1">Photo Asset</label>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-border/60 shrink-0">
+                          <img src={editingFingerling.image_url} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold cursor-pointer hover:bg-primary/90 transition-all">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload New Photo</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={e => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleFileUpload(file, (url) => {
+                                    setEditingFingerling({ ...editingFingerling, image_url: url });
+                                  });
+                                }
+                              }}
+                            />
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Or paste image URL"
+                            value={editingFingerling.image_url}
+                            onChange={e => setEditingFingerling({ ...editingFingerling, image_url: e.target.value })}
+                            className="w-full p-2 rounded-xl bg-muted border border-border text-[11px]"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     <div className="flex gap-2 pt-4">
@@ -257,28 +368,248 @@ export const Admin: React.FC<AdminProps> = ({
           </div>
         )}
 
-        {/* TAB 3: IMAGE MANAGER */}
+        {/* TAB 3: IMAGE MANAGER (NEW UPLOAD & SLIDESHOW MANAGER) */}
         {activeTab === 'images' && (
-          <div className="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
-            <h3 className="text-xl font-bold text-foreground">Hatchery Image Assets</h3>
-            <div className="grid sm:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">Hero Banner</label>
-                <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-border/50">
-                  <img src={settings.hero_image_url} alt="Hero" className="w-full h-full object-cover" />
+          <div className="space-y-8 animate-fade-in">
+            {/* 1. Core Brand & Site Assets */}
+            <div className="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+              <div>
+                <h3 className="text-xl font-bold text-foreground">Core Site Image Assets</h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Upload new photos or paste image URLs for your main hero banner, farm logo, and primary cover.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-6">
+                {/* Hero Banner Upload */}
+                <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-foreground">Hero Banner</label>
+                    <span className="text-[10px] text-muted-foreground">Header background</span>
+                  </div>
+                  <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-border/60 bg-black/20">
+                    <img src={settingsForm.hero_image_url} alt="Hero" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold cursor-pointer hover:bg-primary/90 transition-all">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload Hero Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileUpload(file, (url) => {
+                              const updated = { ...settingsForm, hero_image_url: url };
+                              setSettingsForm(updated);
+                              onUpdateSettings(updated);
+                            });
+                          }
+                        }}
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Image URL"
+                      value={settingsForm.hero_image_url}
+                      onChange={e => {
+                        const updated = { ...settingsForm, hero_image_url: e.target.value };
+                        setSettingsForm(updated);
+                        onUpdateSettings(updated);
+                      }}
+                      className="w-full p-2 rounded-xl bg-card border border-border text-[11px]"
+                    />
+                  </div>
+                </div>
+
+                {/* Farm Logo Upload */}
+                <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-foreground">Farm Logo</label>
+                    <span className="text-[10px] text-muted-foreground">Navbar & Footer</span>
+                  </div>
+                  <div className="aspect-square w-28 mx-auto rounded-full overflow-hidden border-2 border-primary/40 bg-black/20 p-1">
+                    <img src={settingsForm.logo_url} alt="Logo" className="w-full h-full object-cover rounded-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold cursor-pointer hover:bg-primary/90 transition-all">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload Logo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileUpload(file, (url) => {
+                              const updated = { ...settingsForm, logo_url: url };
+                              setSettingsForm(updated);
+                              onUpdateSettings(updated);
+                            });
+                          }
+                        }}
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Logo URL"
+                      value={settingsForm.logo_url}
+                      onChange={e => {
+                        const updated = { ...settingsForm, logo_url: e.target.value };
+                        setSettingsForm(updated);
+                        onUpdateSettings(updated);
+                      }}
+                      className="w-full p-2 rounded-xl bg-card border border-border text-[11px]"
+                    />
+                  </div>
+                </div>
+
+                {/* Cover Image Upload */}
+                <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-foreground">Primary Cover</label>
+                    <span className="text-[10px] text-muted-foreground">About section cover</span>
+                  </div>
+                  <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-border/60 bg-black/20">
+                    <img src={settingsForm.about_image_url} alt="About Cover" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold cursor-pointer hover:bg-primary/90 transition-all">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload Cover Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileUpload(file, (url) => {
+                              const updated = { ...settingsForm, about_image_url: url };
+                              setSettingsForm(updated);
+                              onUpdateSettings(updated);
+                            });
+                          }
+                        }}
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Cover Image URL"
+                      value={settingsForm.about_image_url}
+                      onChange={e => {
+                        const updated = { ...settingsForm, about_image_url: e.target.value };
+                        setSettingsForm(updated);
+                        onUpdateSettings(updated);
+                      }}
+                      className="w-full p-2 rounded-xl bg-card border border-border text-[11px]"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">Farm Logo</label>
-                <div className="aspect-square w-24 rounded-2xl overflow-hidden border border-border/50">
-                  <img src={settings.logo_url} alt="Logo" className="w-full h-full object-cover" />
+            </div>
+
+            {/* 2. ABOUT MESINA FARMS SLIDESHOW PHOTO MANAGER */}
+            <div className="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5 text-primary" />
+                    <span>About Mesina Farms Slideshow Photos</span>
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Upload and manage photos displayed in the interactive slideshow on the Home page.
+                  </p>
                 </div>
+
+                <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-xs font-bold cursor-pointer hover:bg-primary/90 shadow-md transition-all self-start sm:self-auto">
+                  <Upload className="w-4 h-4" />
+                  <span>Upload New Photo to Slideshow</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileUpload(file, (url) => {
+                          handleAddSlidePhoto(url);
+                        });
+                      }
+                    }}
+                  />
+                </label>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">About Image</label>
-                <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-border/50">
-                  <img src={settings.about_image_url} alt="About" className="w-full h-full object-cover" />
-                </div>
+
+              {/* Add via URL input bar */}
+              <div className="flex gap-2 bg-muted/40 p-2 rounded-2xl border border-border/40">
+                <input
+                  type="text"
+                  placeholder="Or enter image URL (e.g. https://...)"
+                  value={newSlideUrl}
+                  onChange={e => setNewSlideUrl(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-transparent text-xs text-foreground focus:outline-none placeholder:text-muted-foreground"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleAddSlidePhoto(newSlideUrl)}
+                  className="px-4 py-2 rounded-xl bg-card border border-border text-xs font-semibold hover:bg-muted transition-all flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5 text-primary" />
+                  <span>Add URL</span>
+                </button>
+              </div>
+
+              {/* Slideshow Photo Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(settingsForm.about_images || [settingsForm.about_image_url]).map((photoUrl, idx) => {
+                  const isCover = photoUrl === settingsForm.about_image_url || idx === 0;
+                  return (
+                    <div key={idx} className="group relative rounded-2xl overflow-hidden border border-border/60 bg-card shadow-lg flex flex-col">
+                      <div className="relative aspect-[4/3] overflow-hidden bg-black/20">
+                        <img src={photoUrl} alt={`Slide ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500" />
+                        
+                        {isCover && (
+                          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold tracking-wider uppercase flex items-center gap-1 shadow-md">
+                            <Star className="w-3 h-3 fill-current" />
+                            Primary Cover
+                          </span>
+                        )}
+
+                        <span className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-bold">
+                          #{idx + 1}
+                        </span>
+                      </div>
+
+                      <div className="p-3 bg-muted/30 flex items-center justify-between gap-2">
+                        {!isCover ? (
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimaryPhoto(idx)}
+                            className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1"
+                          >
+                            <Star className="w-3 h-3" />
+                            Set as Cover
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground font-medium">Cover Photo</span>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSlidePhoto(idx)}
+                          className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-all"
+                          title="Remove from Slideshow"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

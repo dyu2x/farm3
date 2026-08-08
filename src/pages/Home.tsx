@@ -5,6 +5,7 @@ import { Fingerling, BlogArticle, SiteSettings } from '../types';
 import { FingerlingCard } from '../components/FingerlingCard';
 import { OrderCalculator } from '../components/OrderCalculator';
 import { ImageWithFallback } from '../components/ImageWithFallback';
+import { AboutSlideshow } from '../components/AboutSlideshow';
 
 interface HomeProps {
   fingerlings: Fingerling[];
@@ -159,15 +160,10 @@ export const Home: React.FC<HomeProps> = ({ fingerlings, articles, settings }) =
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-border/50">
-              <ImageWithFallback
-                src={settings.about_image_url}
-                alt="Mesina Farms Hatchery"
-                className="w-full h-full"
-                fittingType="cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent" />
-            </div>
+            <AboutSlideshow
+              images={settings.about_images && settings.about_images.length > 0 ? settings.about_images : [settings.about_image_url]}
+              title={settings.farm_name}
+            />
 
             <div className="space-y-6">
               <div className="text-xs uppercase tracking-widest text-primary font-bold">

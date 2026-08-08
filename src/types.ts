@@ -44,6 +44,7 @@ export interface SiteSettings {
   hero_image_url: string;
   logo_url: string;
   about_image_url: string;
+  about_images?: string[];
 }
 
 export interface OrderInquiry {

@@ -12,7 +12,14 @@ export const defaultSiteSettings: SiteSettings = {
   lng: 122.652221,
   hero_image_url: "https://media.base44.com/images/public/6a761d1d3d52f761433ccbdd/8578c9fb0_generated_18cb20b1.png",
   logo_url: "https://media.base44.com/images/public/6a761d1d3d52f761433ccbdd/b90195dea_ChatGPTImageJul112026at01_54_57PM.png",
-  about_image_url: "https://base44.app/api/apps/6a761d1d3d52f761433ccbdd/files/mp/public/6a761d1d3d52f761433ccbdd/05615daa2_fishpon.jpg"
+  about_image_url: "https://base44.app/api/apps/6a761d1d3d52f761433ccbdd/files/mp/public/6a761d1d3d52f761433ccbdd/05615daa2_fishpon.jpg",
+  about_images: [
+    "https://base44.app/api/apps/6a761d1d3d52f761433ccbdd/files/mp/public/6a761d1d3d52f761433ccbdd/05615daa2_fishpon.jpg",
+    "https://media.base44.com/images/public/6a761d1d3d52f761433ccbdd/8578c9fb0_generated_18cb20b1.png",
+    "https://base44.app/api/apps/6a761d1d3d52f761433ccbdd/files/mp/public/6a761d1d3d52f761433ccbdd/6667e565e_fingerlings.jpg",
+    "https://media.base44.com/images/public/6a761d1d3d52f761433ccbdd/019d7bdf3_generated_95e4fe92.png",
+    "https://base44.app/api/apps/6a761d1d3d52f761433ccbdd/files/mp/public/6a761d1d3d52f761433ccbdd/1ba83e32a_juvie.jpg"
+  ]
 };
 
 export const defaultFingerlings: Fingerling[] = [
