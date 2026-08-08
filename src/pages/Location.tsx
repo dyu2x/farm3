@@ -108,10 +108,8 @@ export const Location: React.FC<LocationProps> = ({ settings }) => {
               <Clock className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-base text-foreground">Visiting Hours</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Mon - Fri: 7:00 AM - 5:00 PM<br />
-              Saturday: By Appointment<br />
-              Sunday: Closed
+            <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+              {settings.schedule || "Mon - Fri: 7:00 AM - 5:00 PM\nSaturday: By Appointment\nSunday: Closed"}
             </p>
           </div>
         </div>
